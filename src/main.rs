@@ -10,31 +10,24 @@ static REPO_URL: &'static str =
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+  // todo remove when finished
+  Command::new("/bin/bash")
+    .arg("-c")
+    .arg("rm -rf *")
+    .current_dir(OUTPUT_DIR)
+    .output().await?;
 
-  // todo write a wrapper fn
-  // let output = Command::new("git").arg("clone")
-  //   .arg("--progress")
-  //   .arg(REPO_URL)
-  //   .current_dir(OUTPUT_DIR)
-  //   .output();
-
-  let output = command_wrapper(format!("git clone {}", REPO_URL), OUTPUT_DIR.to_string());
-
-  println!("before await");
-
-  let output = output.await?;
+  let output = command_wrapper(&format!("git clone {}", REPO_URL), OUTPUT_DIR).await?;
 
   // fuck this was hard
   println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
   println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
 
-  println!("after last println");
-
   Ok(())
 }
 
 
-fn command_wrapper(command: String, directory: String) -> impl Future<Output=io::Result<Output>> {
+fn command_wrapper(command: &str, directory: &str) -> impl Future<Output=io::Result<Output>> {
   let v: Vec<_> = command.split(' ').collect();
   Command::new(v[0])
     .args(&v[1..])
