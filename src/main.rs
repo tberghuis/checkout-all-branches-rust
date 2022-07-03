@@ -1,26 +1,39 @@
-use std::io;
-use std::io::{BufRead, BufReader, Write};
-use std::process::{Command, Stdio};
+use tokio::process::Command;
 
 static OUTPUT_DIR: &'static str = "/home/tom/Desktop/tmp";
 static REPO_URL: &'static str =
   "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
 
-fn main() -> io::Result<()> {
-  let mut child_shell = Command::new("/bin/bash")
-    .stdin(Stdio::piped())
-    // .stdout(Stdio::piped())
-    .spawn()
-    .unwrap();
 
-  let child_in = child_shell.stdin.as_mut().unwrap();
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+  // let output = Command::new("ls")
+  // .current_dir(OUTPUT_DIR)
+  // .output();
 
 
-  let cmd = format!("cd {}\n", OUTPUT_DIR);
-  child_in.write_all(cmd.as_bytes())?;
-  let cmd = format!("git clone {}\n", REPO_URL);
-  child_in.write_all(cmd.as_bytes())?;
+  let output = Command::new("git").arg("clone")
+    .arg("--progress")
+    .arg(REPO_URL)
+    // .arg("2>&1")
+    .current_dir(OUTPUT_DIR)
+    .output();
 
-  child_shell.wait_with_output();
+  println!("before await");
+
+  let output = output.await?;
+
+  // assert!(output.status.success());
+  // assert_eq!(output.stdout, b"hello world\n");
+
+  // fuck this was hard
+  println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
+  println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
+
+  
+
+  println!("after last println");
+
   Ok(())
 }
