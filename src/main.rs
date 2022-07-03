@@ -7,16 +7,14 @@ static REPO_URL: &'static str =
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-
   // let output = Command::new("ls")
-  // .current_dir(OUTPUT_DIR)
-  // .output();
-
+  //   .arg("-la")
+  //   .current_dir(OUTPUT_DIR)
+  //   .output();
 
   let output = Command::new("git").arg("clone")
     .arg("--progress")
     .arg(REPO_URL)
-    // .arg("2>&1")
     .current_dir(OUTPUT_DIR)
     .output();
 
@@ -24,14 +22,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   let output = output.await?;
 
-  // assert!(output.status.success());
-  // assert_eq!(output.stdout, b"hello world\n");
-
   // fuck this was hard
   println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
   println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
-
-  
 
   println!("after last println");
 
