@@ -7,7 +7,6 @@ static OUTPUT_DIR: &'static str = "/home/tom/Desktop/tmp";
 static REPO_URL: &'static str =
   "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
 
-
 #[tokio::main]
 async fn main() {
   // todo remove when finished
@@ -26,13 +25,6 @@ async fn main() {
     mkdir_branch(branch).await;
     clone_branch(branch).await;
   }
-
-
-  // fuck this was hard
-  // println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
-  // println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
-
-  // Ok(())
 }
 
 async fn clone_master() {
@@ -55,24 +47,14 @@ fn get_repo_name(url: &str) -> &str {
   repo_name
 }
 
-#[tokio::main]
-async fn main_old() {
-  let branches = get_branch_list().await;
-  println!("{:?}", branches);
-
-  for branch in branches.iter() {
-    mkdir_branch(branch).await;
-    clone_branch(branch).await;
-  }
-}
-
 async fn get_branch_list() -> Vec<String> {
   println!("tmp_get_branch_list");
+  let repo_dir = format!("{}/{}", OUTPUT_DIR, get_repo_name(REPO_URL));
 
   let output = Command::new("git")
     .arg("branch")
     .arg("-a")
-    .current_dir("/home/tom/Desktop/tmp/watch-and-read-comments-for-youtube")
+    .current_dir(repo_dir)
     .output().await.unwrap();
 
   let output_lines = std::str::from_utf8(&output.stdout).unwrap();
@@ -94,15 +76,13 @@ async fn get_branch_list() -> Vec<String> {
   branches
 }
 
-
-async fn mkdir_branch(branch: &str) -> Output {
+async fn mkdir_branch(branch: &str) {
   let dir = format!("{}/branches/{}", OUTPUT_DIR, branch);
 
-  let output = Command::new("mkdir")
+  Command::new("mkdir")
     .arg("-p")
     .arg(dir)
-    .output().await.unwrap();
-  output
+    .output().await.expect("TODO: panic message");
 }
 
 async fn clone_branch(branch: &str) {
