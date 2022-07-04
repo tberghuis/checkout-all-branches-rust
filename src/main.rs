@@ -45,7 +45,12 @@ fn get_repo_name(url: &str) -> &str {
 #[tokio::main]
 async fn main() {
   let branches = tmp_get_branch_list().await;
-  println!("{:?}", branches)
+  println!("{:?}", branches);
+
+  for branch in branches.iter() {
+    mkdir_branch(branch).await;
+    clone_branch(branch).await;
+  }
 }
 
 async fn tmp_get_branch_list() -> Vec<String> {
@@ -74,4 +79,30 @@ async fn tmp_get_branch_list() -> Vec<String> {
   // println!("stderr: {}", output.stderr);
 
   branches
+}
+
+
+async fn mkdir_branch(branch: &str) -> Output {
+  let dir = format!("{}/branches/{}", OUTPUT_DIR, branch);
+
+  let output = Command::new("mkdir")
+    .arg("-p")
+    .arg(dir)
+    .output().await.unwrap();
+  output
+}
+
+async fn clone_branch(branch: &str) {
+  let dir = format!("{}/branches/{}", OUTPUT_DIR, branch);
+
+  Command::new("git")
+    .arg("clone")
+    .arg("--depth")
+    .arg("1")
+    .arg("--branch")
+    .arg(branch)
+    .arg(REPO_URL)
+    .arg(".")
+    .current_dir(&dir)
+    .output().await.expect("TODO: panic message");
 }
