@@ -9,21 +9,34 @@ static REPO_URL: &'static str =
 
 
 #[tokio::main]
-async fn main_tmp() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() {
   // todo remove when finished
   Command::new("/bin/bash")
     .arg("-c")
     .arg("rm -rf *")
     .current_dir(OUTPUT_DIR)
-    .output().await?;
+    .output().await.expect("clean tmp dir failed");
 
-  let output = command_wrapper(&format!("git clone {}", REPO_URL), OUTPUT_DIR).await?;
+  clone_master().await;
+
+  let branches = get_branch_list().await;
+  println!("{:?}", branches);
+
+  for branch in branches.iter() {
+    mkdir_branch(branch).await;
+    clone_branch(branch).await;
+  }
+
 
   // fuck this was hard
-  println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
-  println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
+  // println!("stdout {}", std::str::from_utf8(&output.stdout).unwrap());
+  // println!("stderr {}", std::str::from_utf8(&output.stderr).unwrap());
 
-  Ok(())
+  // Ok(())
+}
+
+async fn clone_master() {
+  command_wrapper(&format!("git clone {}", REPO_URL), OUTPUT_DIR).await.expect("clone master failed");
 }
 
 
@@ -43,8 +56,8 @@ fn get_repo_name(url: &str) -> &str {
 }
 
 #[tokio::main]
-async fn main() {
-  let branches = tmp_get_branch_list().await;
+async fn main_old() {
+  let branches = get_branch_list().await;
   println!("{:?}", branches);
 
   for branch in branches.iter() {
@@ -53,7 +66,7 @@ async fn main() {
   }
 }
 
-async fn tmp_get_branch_list() -> Vec<String> {
+async fn get_branch_list() -> Vec<String> {
   println!("tmp_get_branch_list");
 
   let output = Command::new("git")
