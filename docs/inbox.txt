@@ -6,3 +6,9 @@ next task...
 
 process is do shit hardcoded,
 then abstract with vars one at a time
+
+
+read tokio docs
+SO tokio
+
+how do i panic instead of returning result?

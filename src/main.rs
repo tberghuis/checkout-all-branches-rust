@@ -42,10 +42,36 @@ fn get_repo_name(url: &str) -> &str {
   repo_name
 }
 
-fn main() {
-  tmp_get_branch_list();
+#[tokio::main]
+async fn main() {
+  tmp_get_branch_list().await;
 }
 
-fn tmp_get_branch_list() {
+// i don't understand this box dyn error shit
+async fn tmp_get_branch_list() -> Result<Vec<String>, Box<dyn std::error::Error>> {
   println!("tmp_get_branch_list");
+
+  let output = Command::new("git")
+    .arg("branch")
+    .arg("-a")
+    .current_dir("/home/tom/Desktop/tmp/watch-and-read-comments-for-youtube")
+    .output().await?;
+
+  let output_lines = std::str::from_utf8(&output.stdout).unwrap();
+
+  println!("{}", output_lines);
+
+  let branches: Vec<String> = output_lines.split("\n")
+    .filter(|&s| !s.contains("*"))
+    .filter(|&s| !s.contains("->"))
+    .filter(|&s| !s.is_empty())
+    .map(|s| s.trim())
+    .map(|s| s.replace("remotes/origin/", ""))
+    .collect();
+
+  println!("{}", branches[0]);
+  println!("{}", branches.len());
+  // println!("stderr: {}", output.stderr);
+
+  Ok(branches)
 }
