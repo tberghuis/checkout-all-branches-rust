@@ -12,3 +12,6 @@ read tokio docs
 SO tokio
 
 how do i panic instead of returning result?
+
+next task....
+mkdir and clone branch shallow
