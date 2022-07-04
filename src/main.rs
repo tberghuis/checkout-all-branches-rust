@@ -9,7 +9,7 @@ static REPO_URL: &'static str =
 
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main_tmp() -> Result<(), Box<dyn std::error::Error>> {
   // todo remove when finished
   Command::new("/bin/bash")
     .arg("-c")
@@ -33,4 +33,19 @@ fn command_wrapper(command: &str, directory: &str) -> impl Future<Output=io::Res
     .args(&v[1..])
     .current_dir(directory)
     .output()
+}
+
+fn get_repo_name(url: &str) -> &str {
+  let v: Vec<&str> = url.split('/').collect();
+  let basename = v[v.len() - 1];
+  let repo_name = basename.split('.').collect::<Vec<&str>>()[0];
+  repo_name
+}
+
+fn main() {
+  tmp_get_branch_list();
+}
+
+fn tmp_get_branch_list() {
+  println!("tmp_get_branch_list");
 }

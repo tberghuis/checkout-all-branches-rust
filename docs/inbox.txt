@@ -1,1 +1,8 @@
 do it wrong
+
+next task...
+  get repo name
+
+
+process is do shit hardcoded,
+then abstract with vars one at a time
