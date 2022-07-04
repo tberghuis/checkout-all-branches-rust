@@ -3,32 +3,37 @@ use std::io;
 use core::future::Future;
 use std::process::Output;
 
-static OUTPUT_DIR: &'static str = "/home/tom/Desktop/tmp";
-static REPO_URL: &'static str =
-  "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
+// static OUTPUT_DIR: &'static str = "/home/tom/Desktop/tmp";
+// static REPO_URL: &'static str =
+//   "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
 
 #[tokio::main]
 async fn main() {
+  let output_dir = "/home/tom/Desktop/tmp";
+  let repo_url = "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
+  let repo_name = get_repo_name(repo_url);
+
+
   // todo remove when finished
   Command::new("/bin/bash")
     .arg("-c")
     .arg("rm -rf *")
-    .current_dir(OUTPUT_DIR)
+    .current_dir(output_dir)
     .output().await.expect("clean tmp dir failed");
 
-  clone_master().await;
+  clone_master(output_dir, repo_url).await;
 
-  let branches = get_branch_list().await;
+  let branches = get_branch_list(output_dir, repo_name).await;
   println!("{:?}", branches);
 
   for branch in branches.iter() {
-    mkdir_branch(branch).await;
-    clone_branch(branch).await;
+    mkdir_branch(output_dir, branch).await;
+    clone_branch(output_dir, repo_url, branch).await;
   }
 }
 
-async fn clone_master() {
-  command_wrapper(&format!("git clone {}", REPO_URL), OUTPUT_DIR).await.expect("clone master failed");
+async fn clone_master(output_dir: &str, repo_url: &str) {
+  command_wrapper(&format!("git clone {}", repo_url), output_dir).await.expect("clone master failed");
 }
 
 
@@ -47,9 +52,9 @@ fn get_repo_name(url: &str) -> &str {
   repo_name
 }
 
-async fn get_branch_list() -> Vec<String> {
+async fn get_branch_list(output_dir: &str, repo_name: &str) -> Vec<String> {
   println!("tmp_get_branch_list");
-  let repo_dir = format!("{}/{}", OUTPUT_DIR, get_repo_name(REPO_URL));
+  let repo_dir = format!("{}/{}", output_dir, repo_name);
 
   let output = Command::new("git")
     .arg("branch")
@@ -76,8 +81,8 @@ async fn get_branch_list() -> Vec<String> {
   branches
 }
 
-async fn mkdir_branch(branch: &str) {
-  let dir = format!("{}/branches/{}", OUTPUT_DIR, branch);
+async fn mkdir_branch(output_dir: &str, branch: &str) {
+  let dir = format!("{}/branches/{}", output_dir, branch);
 
   Command::new("mkdir")
     .arg("-p")
@@ -85,8 +90,8 @@ async fn mkdir_branch(branch: &str) {
     .output().await.expect("TODO: panic message");
 }
 
-async fn clone_branch(branch: &str) {
-  let dir = format!("{}/branches/{}", OUTPUT_DIR, branch);
+async fn clone_branch(output_dir: &str, repo_url: &str, branch: &str) {
+  let dir = format!("{}/branches/{}", output_dir, branch);
 
   Command::new("git")
     .arg("clone")
@@ -94,7 +99,7 @@ async fn clone_branch(branch: &str) {
     .arg("1")
     .arg("--branch")
     .arg(branch)
-    .arg(REPO_URL)
+    .arg(repo_url)
     .arg(".")
     .current_dir(&dir)
     .output().await.expect("TODO: panic message");
