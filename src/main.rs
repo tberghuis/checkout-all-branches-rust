@@ -2,24 +2,27 @@ use tokio::process::Command;
 use std::io;
 use core::future::Future;
 use std::process::Output;
+use std::env;
+use std::process;
+use std::path::PathBuf;
 
-// static OUTPUT_DIR: &'static str = "/home/tom/Desktop/tmp";
-// static REPO_URL: &'static str =
-//   "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
 
 #[tokio::main]
 async fn main() {
-  let output_dir = "/home/tom/Desktop/tmp";
-  let repo_url = "https://github.com/tberghuis/watch-and-read-comments-for-youtube.git";
+  let args: Vec<String> = env::args().collect();
+  println!("{:?}", args);
+
+  if args.len() != 3 {
+    println!("usage: checkout-all-branches-rust <repo_url> <output_dir>");
+    println!("  e.g. checkout-all-branches-rust https://github.com/user/repo.git .");
+    process::exit(1);
+  }
+
+  let output_dir = &args[2];
+  let repo_url = &args[1];
   let repo_name = get_repo_name(repo_url);
 
-
-  // todo remove when finished
-  Command::new("/bin/bash")
-    .arg("-c")
-    .arg("rm -rf *")
-    .current_dir(output_dir)
-    .output().await.expect("clean tmp dir failed");
+  check_output_dir_empty(output_dir);
 
   clone_master(output_dir, repo_url).await;
 
@@ -31,6 +34,16 @@ async fn main() {
     clone_branch(output_dir, repo_url, branch).await;
   }
 }
+
+fn check_output_dir_empty(output_dir: &str) {
+  let path = PathBuf::from(output_dir);
+  let is_empty = path.read_dir().unwrap().next().is_none();
+  if !is_empty {
+    println!("output_dir is not empty, exiting...");
+    process::exit(1);
+  }
+}
+
 
 async fn clone_master(output_dir: &str, repo_url: &str) {
   command_wrapper(&format!("git clone {}", repo_url), output_dir).await.expect("clone master failed");
